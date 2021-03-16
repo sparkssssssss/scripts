@@ -1,5 +1,6 @@
 #author:spark
 #20210316
+#通过api自动发送指定文本,自定义语句
 
 from telethon import TelegramClient
 import os
@@ -27,8 +28,9 @@ async def main():
     Llists = re.findall(r'/jd[a-z]+\s.*?[a-zA-Z0-9-_&=]+',res)
     #@TuringLabbot
     Tlists =  re.findall(r'/submit_activity_codes\s.*?[a-z]+.*?[a-zA-Z0-9-_&=]+',res)
-    #for diy,自定义发送语句
-    Dlists = ['xxxx','xxxxxx']
+    #for diy,自定义发送语句,语句格式如下
+    #Dlists = ['xxxx','xxxxxx']
+    Dlists = []
     
     if today in Tdays:
         for msg in Tlists:
@@ -37,9 +39,9 @@ async def main():
     for msg in Llists:
         await client.send_message('@LvanLamCommitCodeBot', msg)
         #time.sleep(1)
-    ##如有需要,取消注释,并修改联系人.
-    #for msg in Dlists:      
-    #   await client.send_message('@LvanLamCommitCodeBot', msg)
+    if Dlists:
+        for msg in Dlists:      
+        await client.send_message('@LvanLamCommitCodeBot', msg)
         #time.sleep(1)
 
 with client:
