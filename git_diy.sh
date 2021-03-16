@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#author:spark
 #需要docker环境
 #copy本文件到scripts映射的文件夹
 #新建diyscripts文件夹,并映射到容器目录/jd/diyscripts
