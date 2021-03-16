@@ -1,4 +1,5 @@
 #!/bin/bash
+#author:spark
 
 . /jd/config/config.sh
 title=$(echo $1|sed 's/-/_/g')
