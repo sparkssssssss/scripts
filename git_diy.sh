@@ -59,7 +59,7 @@ function addnewcron {
 
 function delcron {
   delname=""
-  cronfiles=$(grep "$author" /jd/config/crontab.list|grep -v "^#"|awk -F"${author}_" '{print $2}')
+  cronfiles=$(grep "$author" /jd/config/crontab.list|grep -v "^#"|awk '{print $8}'|awk -F"${author}_" '{print $2}')
   for filename in $cronfiles;
     do
       if [ ! -f "${diyscripts}/${filename}.js" ]; then 
