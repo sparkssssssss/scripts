@@ -1,7 +1,6 @@
 /**
- * nodejs的request模块模拟登陆开源中国
+ * nodejs
  */
-//密码加密模块
 const notify = require('./sendNotify') ;
 const xpath = require('xpath')
 const dom = require('xmldom').DOMParser
