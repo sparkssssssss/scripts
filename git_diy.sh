@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #author:spark
-#需要docker环境
-#举个栗子,如果我们需要拉取大佬i-chenzhe的脚本仓库,则在计划任务内添加以下任务:
-###->    /bin/bash /jd/scripts/git_diy.sh  i-chenzhe  qx     <-###
-#或者添加到到diy.sh最后一行即可!
+#需要docker环境,下载本文件到容器内任意位置,以下示例是放到了/jd/scripts
+#举个栗子,我们要拉取大佬i-chenzhe的qx脚本仓库,则在计划任务内添加以下任务(半小时拉取一次,时间自定):
+###-> */30 * * * *  /bin/bash /jd/scripts/git_diy.sh  i-chenzhe  qx     <-###
+#或者添加到到diy.sh最后一行即可,跟随pull的频率,不过pull的频率远远跟不上柘大佬的节奏!
 #群文件sendinfo.js sendinfo.sh两个文件请放到scripts映射目录下,如没有,则没有通知消息
 
 #操作之前请备份,信息丢失,概不负责.
