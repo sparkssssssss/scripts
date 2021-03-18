@@ -1,33 +1,39 @@
 #!/usr/bin/env bash
 #author:spark
 #需要docker环境
-#copy本文件到scripts映射的文件夹
-#新建diyscripts文件夹,并映射到容器目录/jd/diyscripts
-#需要同步的仓库,比如i-chenzhe,则进入diyscripts 运行 git clone https://github.com/i-chenzhe/qx.git i-chenzhe 
-#/bin/bash /jd/scripts/git_diy.sh  i-chenzhe       copy到diy.sh最后一行即可
+#举个栗子,如果我们需要拉取大佬i-chenzhe的脚本仓库,则在计划任务内添加以下任务:
+###->    /bin/bash /jd/scripts/git_diy.sh  i-chenzhe  qx     <-###
+#或者添加到到diy.sh最后一行即可!
 #群文件sendinfo.js sendinfo.sh两个文件请放到scripts映射目录下,如没有,则没有通知消息
 
 #操作之前请备份,信息丢失,概不负责.
 #操作之前请备份,信息丢失,概不负责.
 #操作之前请备份,信息丢失,概不负责.
 
-if [ $# != 1 ] ; then
-  echo "USAGE: $0 author"
-  exit 1;
+if [ $# != 2 ] ; then
+  echo "USAGE: $0 author repo"
+  exit 0;
 fi
 
 author=$1
-diyscripts=/jd/diyscripts/${author}
-if [ ! -d "$diyscripts" ]; then
-  echo -e "${author}仓库不存在,确认后重试!"
-  exit 0
+repo=$2
+diyscriptsdir=/jd/diyscripts
+mkdir ${diyscriptsdir}
+
+if [ ! -d "$diyscriptsdir/${author}_${repo}" ]; then
+  echo -e "${author}本地仓库不存在,从gayhub拉取ing..."
+  cd ${diyscriptsdir} &&  git clone https://github.com/${author}/${repo}.git ${author}_${repo}
+  gitpullstatus=$?
+  [ $gitpullstatus -eq 0 ] && echo -e "${author}本地仓库拉取完毕"
+  [ $gitpullstatus -ne 0 ] && echo -e "${author}本地仓库拉取失败,请检查!" && exit 0
+else
+  cd ${diyscriptsdir}/${author}_${repo}
+  branch=`git symbolic-ref --short -q HEAD`
+  git fetch --all
+  git reset --hard origin/$branch
+  git pull
+  gitpullstatus=$?
 fi
-cd ${diyscripts}
-branch=`git symbolic-ref --short -q HEAD`
-git fetch --all
-git reset --hard origin/$branch
-git pull
-gitpullstatus=$?
 
 rand(){
     min=$1
@@ -38,7 +44,7 @@ rand(){
 
 function addnewcron {
   addname=""
-  cd ${diyscripts}
+  cd ${diyscriptsdir}/${author}_${repo}
   for js in `ls *.js`;
     do 
       croname=`echo "${author}_$js"|awk -F\. '{print $1}'`
@@ -62,7 +68,7 @@ function delcron {
   cronfiles=$(grep "$author" /jd/config/crontab.list|grep -v "^#"|awk '{print $8}'|awk -F"${author}_" '{print $2}')
   for filename in $cronfiles;
     do
-      if [ ! -f "${diyscripts}/${filename}.js" ]; then 
+      if [ ! -f "${diyscriptsdir}/${author}_${repo}/${filename}.js" ]; then 
         sed -i "/\<bash jd ${author}_${filename}\>/d" /jd/config/crontab.list && echo -e "删除失效脚本${filename}."
 	    delname="${delname}\n${author}_${filename}"
       fi
