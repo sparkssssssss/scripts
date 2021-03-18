@@ -11,15 +11,23 @@
 #操作之前请备份,信息丢失,概不负责.
 #操作之前请备份,信息丢失,概不负责.
 
+declare -A BlackListDict
+author=$1
+repo=$2
+#指定仓库屏蔽关键词,不添加计划任务,多个按照格式二
+BlackListDict['i-chenzhe']="_get"
+BlackListDict['sparkssssssss']="smzdm|tg|xxxxxxxx"
+
+blackword=${BlackListDict["${author}"]}
+blackword=${blackword:-"wojiushigejimo"}
+
 if [ $# != 2 ] ; then
   echo "USAGE: $0 author repo"
   exit 0;
 fi
 
-author=$1
-repo=$2
 diyscriptsdir=/jd/diyscripts
-mkdir ${diyscriptsdir}
+mkdir -p ${diyscriptsdir}
 
 if [ ! -d "$diyscriptsdir/${author}_${repo}" ]; then
   echo -e "${author}本地仓库不存在,从gayhub拉取ing..."
@@ -46,7 +54,7 @@ rand(){
 function addnewcron {
   addname=""
   cd ${diyscriptsdir}/${author}_${repo}
-  for js in `ls *.js`;
+  for js in `ls *.js|egrep -v $blackword`;
     do 
       croname=`echo "${author}_$js"|awk -F\. '{print $1}'`
       script_date=`cat  $js|grep ^[0-9]|awk '{print $1,$2,$3,$4,$5}'|egrep -v "[a-zA-Z]|:|\."|sort |uniq|head -n 1`
@@ -71,7 +79,7 @@ function delcron {
     do
       if [ ! -f "${diyscriptsdir}/${author}_${repo}/${filename}.js" ]; then 
         sed -i "/\<bash jd ${author}_${filename}\>/d" /jd/config/crontab.list && echo -e "删除失效脚本${filename}."
-	    delname="${delname}\n${author}_${filename}"
+	delname="${delname}\n${author}_${filename}"
       fi
   done
   [ "$delname" != "" ] && [ -f "/jd/scripts/sendinfo.sh" ] && /bin/bash  /jd/scripts/sendinfo.sh  "${author}删除失效脚本" "${delname}" 
