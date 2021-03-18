@@ -70,7 +70,7 @@ accept-encoding: gzip
     try:
         m2cpayload ={"mission_type":m2type,"timeout":10000}
         m2c = s.post(url=mcurl,headers=header,data=json.dumps(m2cpayload))
-        #此处为完成体力4的任务数据,需要传参,所以,替换anti_content即可
+        #此处为完成体力4的任务数据,手动抓一次,因需要传参,所以,手动替换anti_content即可
         m2payload = {"mission_type":m2type,"anti_content":"","timeout":10000}
         m2 = s.post(url=murl,headers=header,data=json.dumps(m2payload))
 
