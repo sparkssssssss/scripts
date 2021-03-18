@@ -83,7 +83,7 @@ then
   delcron
 else
   echo -e "$author 仓库更新失败了."
-  #[ -f "/jd/scripts/sendinfo.sh" ] && /bin/bash  /jd/scripts/sendinfo.sh "自定义仓库更新失败" "$author"
+  [ -f "/jd/scripts/sendinfo.sh" ] && /bin/bash  /jd/scripts/sendinfo.sh "自定义仓库更新失败" "$author"
 fi
 
 exit 0
