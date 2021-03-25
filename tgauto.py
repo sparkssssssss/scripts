@@ -32,16 +32,17 @@ async def main():
     #Dlists = ['xxxx','xxxxxx']
     Dlists = []
     
+    #touser自定义
     if today in Tdays:
         for msg in Tlists:
-            await client.send_message('@TuringLabbot', msg)
+            await client.send_message('@T', msg)
             #time.sleep(1)  
     for msg in Llists:
-        await client.send_message('@LvanLamCommitCodeBot', msg)
+        await client.send_message('@L', msg)
         #time.sleep(1)
     if Dlists:
         for msg in Dlists:      
-        await client.send_message('@LvanLamCommitCodeBot', msg)
+        await client.send_message('@L', msg)
         #time.sleep(1)
 
 with client:
