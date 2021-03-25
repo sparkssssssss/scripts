@@ -24,9 +24,9 @@ today = datetime.date.today().day
 async def main():
     with open(log,'r') as f:
         res = f.read()
-    #@LvanLamCommitCodeBot
+    #@L
     Llists = re.findall(r'/jd[a-z]+\s.*?[a-zA-Z0-9-_&=]+',res)
-    #@TuringLabbot
+    #@T
     Tlists =  re.findall(r'/submit_activity_codes\s.*?[a-z]+.*?[a-zA-Z0-9-_&=]+',res)
     #for diy,自定义发送语句,语句格式如下
     #Dlists = ['xxxx','xxxxxx']
