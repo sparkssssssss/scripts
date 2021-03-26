@@ -65,7 +65,7 @@ function addnewcron {
       if [ $(egrep -v "^#|nochange" /jd/config/crontab.list|grep -c -w "$croname" ) -eq 1 ];then
           old_script_date=$(grep -w "$croname" /jd/config/crontab.list|awk '{print $1,$2,$3,$4,$5}')
 	  [ "${old_script_date}" != "${script_date}" ] && sed -i "/bash jd $croname/d" /jd/config/crontab.list && sed -i "/hangup/a${script_date} bash jd $croname"  /jd/config/crontab.list
-      if
+      fi
 
       if [ ! -f "/jd/scripts/${author}_$js" ];then
         \cp $js /jd/scripts/${author}_$js
