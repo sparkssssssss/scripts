@@ -61,6 +61,12 @@ function addnewcron {
       [ -z "${script_date}" ] && script_date=`cat  $js|grep -Eo "([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9][,-].*)"|sort |uniq|head -n 1`
       [ -z "${script_date}" ] && cron_min=$(rand 1 59) && cron_hour=$(rand 7 9) && script_date="${cron_min} ${cron_hour} * * *"
       [ $(grep -c -w "$croname" /jd/config/crontab.list) -eq 0 ] && sed -i "/hangup/a${script_date} bash jd $croname"  /jd/config/crontab.list && addname="${addname}\n${croname}" && echo -e "添加了新的脚本${croname}." && bash jd ${croname} now >/dev/null &
+
+      if [ $(egrep -v "^#|nochange" /jd/config/crontab.list|grep -c -w "$croname" ) -eq 1 ];then
+          old_script_date=$(grep -w "$croname" /jd/config/crontab.list|awk '{print $1,$2,$3,$4,$5}')
+	  [ "${old_script_date}" != "${script_date}" ] && sed -i "/bash jd $croname/d" /jd/config/crontab.list && sed -i "/hangup/a${script_date} bash jd $croname"  /jd/config/crontab.list
+      if
+
       if [ ! -f "/jd/scripts/${author}_$js" ];then
         \cp $js /jd/scripts/${author}_$js
       else
