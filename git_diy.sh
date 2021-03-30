@@ -15,15 +15,17 @@
 declare -A BlackListDict
 author=$1
 repo=$2
+dir=$3
 #指定仓库屏蔽关键词,不添加计划任务,多个按照格式二
-BlackListDict['i-chenzhe']="_get"
+BlackListDict['i-chenzhe']="_get|backup"
 BlackListDict['sparkssssssss']="smzdm|tg|xxxxxxxx"
 
 blackword=${BlackListDict["${author}"]}
 blackword=${blackword:-"wojiushigejimo"}
 
-if [ $# != 2 ] ; then
-  echo "USAGE: $0 author repo"
+if [ $# -lt 2 ] && [ $# -gt 3 ] ; then
+  echo "USAGE: $0 author repo         #for all repo"
+  echo "USAGE: $0 author repo  dir    #for special dir of the repo"
   exit 0;
 fi
 
@@ -54,14 +56,24 @@ rand(){
 
 function addnewcron {
   addname=""
-  cd ${diyscriptsdir}/${author}_${repo}
-  for js in `ls *.js|egrep -v $blackword`;
+  if [ -n $dir ];then
+    cd ${diyscriptsdir}/${author}_${repo}/$dir
+    author=${author}_${dir}
+  else
+    cd ${diyscriptsdir}/${author}_${repo}
+  fi
+  [ $(grep -c "#${author}" /jd/config/crontab.list) -eq 0 ] && sed -i "/hangup/a#${author}" /jd/config/crontab.list
+  
+  for jspath in `ls *.js|egrep -v $blackword`; 
+  #for jspath in `find ./ -name  "*.js"|egrep -v $blackword`; 
+  #for js in `ls *.js|egrep -v $blackword`;
     do 
+      js=`echo $jspath|awk -F'/' '{print $NF}'` 
       croname=`echo "${author}_$js"|awk -F\. '{print $1}'`
       script_date=`cat  $js|grep ^[0-9]|awk '{print $1,$2,$3,$4,$5}'|egrep -v "[a-zA-Z]|:|\."|sort |uniq|head -n 1`
-      [ -z "${script_date}" ] && script_date=`cat  $js|grep -Eo "([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9][,-].*)"|sort |uniq|head -n 1`
+      [ -z "${script_date}" ] && script_date=`cat  $jspath|grep -Eo "([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9][,-].*)"|sort |uniq|head -n 1`
       [ -z "${script_date}" ] && cron_min=$(rand 1 59) && cron_hour=$(rand 7 9) && script_date="${cron_min} ${cron_hour} * * *"
-      [ $(grep -c -w "$croname" /jd/config/crontab.list) -eq 0 ] && sed -i "/hangup/a${script_date} bash jd $croname"  /jd/config/crontab.list && addname="${addname}\n${croname}" && echo -e "添加了新的脚本${croname}." && bash jd ${croname} now >/dev/null &
+      [ $(grep -c -w "$croname" /jd/config/crontab.list) -eq 0 ] && sed -i "/#${author}/a${script_date} bash jd $croname"  /jd/config/crontab.list && addname="${addname}\n${croname}" && echo -e "添加了新的脚本${croname}." #&& bash jd ${croname} now >/dev/null &
 
       if [ $(egrep -v "^#|nochange" /jd/config/crontab.list|grep -c -w "$croname" ) -eq 1 ];then
           old_script_date=$(grep -w "$croname" /jd/config/crontab.list|awk '{print $1,$2,$3,$4,$5}')
@@ -69,10 +81,11 @@ function addnewcron {
       fi
 
       if [ ! -f "/jd/scripts/${author}_$js" ];then
-        \cp $js /jd/scripts/${author}_$js
+        \cp $jspath /jd/scripts/${author}_$js
       else
-        change=$(diff $js /jd/scripts/${author}_$js)
-        [ -n "${change}" ] && \cp $js /jd/scripts/${author}_$js && echo -e "${author}_$js 脚本更新了."
+        change=$(diff $jspath /jd/scripts/${author}_$js)
+        [ -n "${change}" ] && \cp $jspath /jd/scripts/${author}_$js && echo -e "${author}_$js 脚本更新了."
+
       fi
   done
   [ "$addname" != "" ] && [ -f "/jd/scripts/sendinfo.sh" ] && /bin/bash  /jd/scripts/sendinfo.sh "${author}新增自定义脚本" "${addname}"
@@ -81,10 +94,16 @@ function addnewcron {
 
 function delcron {
   delname=""
+  if [ -n $dir ];then
+    jspath=${diyscriptsdir}/${author}_${repo}/$dir
+    author=${author}_${dir}
+  else
+    jspath=${diyscriptsdir}/${author}_${repo}
+  fi
   cronfiles=$(grep "$author" /jd/config/crontab.list|grep -v "^#"|awk '{print $8}'|awk -F"${author}_" '{print $2}')
   for filename in $cronfiles;
     do
-      if [ ! -f "${diyscriptsdir}/${author}_${repo}/${filename}.js" ]; then 
+      if [ ! -f "$jspath/${filename}.js" ]; then 
         sed -i "/\<bash jd ${author}_${filename}\>/d" /jd/config/crontab.list && echo -e "删除失效脚本${filename}."
 	delname="${delname}\n${author}_${filename}"
       fi
