@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 #author:spark
 #需要docker环境,下载本文件到容器内任意位置,以下示例是放到了/jd/scripts
-#举个栗子,我们要拉取大佬i-chenzhe的qx脚本仓库,则在计划任务内添加以下任务(半小时拉取一次,时间自定):
-###-> */30 * * * *  /bin/bash /jd/scripts/git_diy.sh  i-chenzhe  qx     <-###
+#举个栗子,我们要拉取大佬i-chenzhe的脚本仓库,则在计划任务内添加以下任务(半小时拉取一次,时间自定):
+#github:https://github.com/monk-coder/dust/tree/dust/i-chenzhe,
+#仓库作者为monk-coder
+#仓库repo为dust
+#仓库文件夹为i-chenzhe
+#添加以下命令到计划任务↓
+#########-> */30 * * * *  bash /jd/scripts/git_diy.sh monk-coder dust i-chenzhe     <-########
 #或者添加到到diy.sh最后一行即可,跟随pull的频率,不过pull的频率远远跟不上柘大佬的节奏!
 #脚本每次运行会检测脚本内的定时任务是否更新,如果有自定义脚本执行时间,不想随脚本更新,请在脚本计划任务后>添加注释 #nochange
 #如果仓库内有不想执行的脚本,注释即可!
