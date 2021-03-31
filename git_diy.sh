@@ -73,12 +73,14 @@ function addnewcron {
   #for jspath in `find ./ -name  "*.js"|egrep -v $blackword`; 
   #for js in `ls *.js|egrep -v $blackword`;
     do 
+      newflag=0
       js=`echo $jspath|awk -F'/' '{print $NF}'` 
       croname=`echo "${author}_$js"|awk -F\. '{print $1}'`
       script_date=`cat  $js|grep ^[0-9]|awk '{print $1,$2,$3,$4,$5}'|egrep -v "[a-zA-Z]|:|\."|sort |uniq|head -n 1`
       [ -z "${script_date}" ] && script_date=`cat  $jspath|grep -Eo "([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9][,-].*)"|sort |uniq|head -n 1`
       [ -z "${script_date}" ] && cron_min=$(rand 1 59) && cron_hour=$(rand 7 9) && script_date="${cron_min} ${cron_hour} * * *"
-      [ $(grep -c -w "$croname" /jd/config/crontab.list) -eq 0 ] && sed -i "/#${author}/a${script_date} bash jd $croname"  /jd/config/crontab.list && addname="${addname}\n${croname}" && echo -e "添加了新的脚本${croname}." #&& bash jd ${croname} now >/dev/null &
+      [ $(grep -c -w "$croname" /jd/config/crontab.list) -eq 0 ] && sed -i "/#${author}/a${script_date} bash jd $croname"  /jd/config/crontab.list && addname="${addname}\n${croname}" && echo -e "添加了新的脚本${croname}." && newflag=1;
+      [ $newflag -eq 1 ] && bash jd ${croname} now >/dev/null &
 
       if [ $(egrep -v "^#|nochange" /jd/config/crontab.list|grep -c -w "$croname" ) -eq 1 ];then
           old_script_date=$(grep -w "$croname" /jd/config/crontab.list|awk '{print $1,$2,$3,$4,$5}')
