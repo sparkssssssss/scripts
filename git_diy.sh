@@ -43,8 +43,9 @@ mkdir -p ${diyscriptsdir}
 
 if [ ! -d "$diyscriptsdir/${author}_${repo}" ]; then
   echo -e "${author}本地仓库不存在,从gayhub拉取ing..."
-  cd ${diyscriptsdir} &&  git clone https://github.com/${author}/${repo}.git ${author}_${repo}
+  cd ${diyscriptsdir} &&  git clone git@github.com:${author}/${repo}.git ${author}_${repo}
   gitpullstatus=$?
+  sleep 1000
   [ $gitpullstatus -eq 0 ] && echo -e "${author}本地仓库拉取完毕"
   [ $gitpullstatus -ne 0 ] && echo -e "${author}本地仓库拉取失败,请检查!" && exit 0
 else
