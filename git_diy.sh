@@ -23,7 +23,8 @@ repo=$2
 dir=$3
 
 #私仓更新,秘钥放在/jd/diyscripts/sshkey/目录下,并已作者名字命名
-[ -f /jd/diyscripts/sshkey/$author ] &&  export GIT_SSH_COMMAND="ssh -i /jd/diyscripts/sshkey/$author"
+[ -f /jd/diyscripts/sshkey/$author ] && eval `ssh-agent -s` && ssh-add  /jd/diyscripts/sshkey/$author
+#[ -f /jd/diyscripts/sshkey/$author ] &&  export GIT_SSH_COMMAND="ssh -i /jd/diyscripts/sshkey/$author"
 
 #指定仓库屏蔽关键词,不添加计划任务,多个按照格式二
 BlackListDict['i-chenzhe']="_get|backup"
