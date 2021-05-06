@@ -44,7 +44,8 @@ mkdir -p ${diyscriptsdir}
 
 if [ ! -d "$diyscriptsdir/${author}_${repo}" ]; then
   echo -e "${author}本地仓库不存在,从gayhub拉取ing..."
-  cd ${diyscriptsdir} &&  git clone https://github.com/${author}/${repo}.git ${author}_${repo}
+  #cd ${diyscriptsdir} &&  git clone https://github.com/${author}/${repo}.git ${author}_${repo}
+  cd ${diyscriptsdir} &&  git clone git@github.com:${author}/${repo}.git ${author}_${repo}
   gitpullstatus=$?
   [ $gitpullstatus -eq 0 ] && echo -e "${author}本地仓库拉取完毕"
   [ $gitpullstatus -ne 0 ] && echo -e "${author}本地仓库拉取失败,请检查!" && exit 0
@@ -72,7 +73,7 @@ function addnewcron {
   else
     cd ${diyscriptsdir}/${author}_${repo}
   fi
-  [ $(grep -c "#${author}" /jd/config/crontab.list) -eq 0 ] && sed -i "/\#diy/i#${author}" /jd/config/crontab.list
+  [ $(grep -c "#${author}" /jd/config/crontab.list) -eq 0 ] && sed -i "/hangup/a#${author}"  /jd/config/crontab.list
   
   for jspath in `ls *.js|egrep -v $blackword`; 
   #for jspath in `find ./ -name  "*.js"|egrep -v $blackword`; 
@@ -101,7 +102,6 @@ function addnewcron {
 
       fi
   done
-  echo $addname
   [ "$addname" != "" ] && [ -f "/jd/scripts/sendinfo.sh" ] && /bin/bash  /jd/scripts/sendinfo.sh "${author}新增自定义脚本" "${addname}"
 
 }
@@ -134,7 +134,7 @@ then
   done
 else
   echo -e "$author 仓库更新失败了."
-  [ -f "/jd/scripts/sendinfo.sh" ] && [ $(date "+%H") -ge 9 ] && [ $(date "+%H") -lt 12 ] && /bin/bash  /jd/scripts/sendinfo.sh "自定义仓库更新失败" "$author"
+  [ -f "/jd/scripts/sendinfo.sh" ] && /bin/bash  /jd/scripts/sendinfo.sh "自定义仓库更新失败" "$author"
 fi
 
 exit 0
