@@ -127,11 +127,16 @@ function delcron {
 
 if [[ ${gitpullstatus} -eq 0 ]]
 then
-  for dir in `echo "$dirs" | sed 's/,/\n/g'`
-  do
+  if [ -n "$dirs" ] ;then
+    for dir in `pcho "$dirs" | sed 's/,/\n/g'`
+    do
+      addnewcron
+      delcron
+    done
+  else
     addnewcron
     delcron
-  done
+  fi
 else
   echo -e "$author 仓库更新失败了."
   [ -f "/jd/scripts/sendinfo.sh" ] && /bin/bash  /jd/scripts/sendinfo.sh "自定义仓库更新失败" "$author"
