@@ -54,9 +54,9 @@ class getCCB():
     def __init__(self,cookies,shareCode):
         self.cookies = cookies
         self.commonShareCode = shareCode['common'] + commoncode
-        print('建筑互助码:{}'.format(self.commonShareCode))
+        logit.info('建筑互助码:{}'.format(self.commonShareCode))
         self.motherDayShareCode = shareCode['motherDay'] + mothercode
-        print('母亲节互助码:{}'.format(self.motherDayShareCode))
+        logit.info('母亲节互助码:{}'.format(self.motherDayShareCode))
         self.xsrfToken = self.cookies['XSRF-TOKEN'].replace('%3D','=')
         self.currentTime = int(time.time())
 
