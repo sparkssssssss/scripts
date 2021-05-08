@@ -8,8 +8,6 @@ import re
 import time
 import datetime
 import random
-import socket
-import socks
 
 #填自己的
 api_id = 12345
@@ -27,6 +25,8 @@ today = datetime.date.today().day
 socketip = ""
 socketport = ""
 if socketip and socketport:
+    import socket
+    import socks
     socks.set_default_proxy(socks.SOCKS5, socketip, socketport)
     socket.socket = socks.socksocket
 
