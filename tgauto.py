@@ -22,9 +22,10 @@ flist = os.listdir(logdir)
 log = logdir + flist[0]
 Tdays = [1,8,16,24]
 today = datetime.date.today().day
+
+#socket5proxy
 socketip = ""
 socketport = ""
-
 if socketip and socketport:
     socks.set_default_proxy(socks.SOCKS5, socketip, socketport)
     socket.socket = socks.socksocket
