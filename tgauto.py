@@ -8,6 +8,7 @@ import re
 import time
 import datetime
 import random
+import sys
 
 #填自己的
 api_id = 12345
@@ -15,9 +16,16 @@ api_hash = '0123456789abcdef0123456789abcdef'
 client = TelegramClient('anon', api_id, api_hash)
 
 #日志路径,按照以下示例
-logdir = '/home/docker/jd/log/qq34347476_format_share_jd_code/'
-flist = os.listdir(logdir)
-log = logdir + flist[0]
+try:
+    logdir = '/home/docker/jd/log/qq34347476_format_share_jd_code/'
+    flist = os.listdir(logdir)
+    log = logdir + flist[0]
+except:
+    log = ""
+if not log:
+    print("找不到日志文件!")
+    sys.exit(1)
+
 Tdays = [1,8,16,24]
 today = datetime.date.today().day
 
