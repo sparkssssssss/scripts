@@ -8,6 +8,8 @@ import re
 import time
 import datetime
 import random
+import socket
+import socks
 
 #填自己的
 api_id = 12345
@@ -20,6 +22,12 @@ flist = os.listdir(logdir)
 log = logdir + flist[0]
 Tdays = [1,8,16,24]
 today = datetime.date.today().day
+socketip = ""
+socketport = ""
+
+if socketip and socketport:
+    socks.set_default_proxy(socks.SOCKS5, socketip, socketport)
+    socket.socket = socks.socksocket
 
 async def main():
     with open(log,'r') as f:
