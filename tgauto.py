@@ -51,7 +51,7 @@ async def main():
         #time.sleep(1)
     if Dlists:
         for msg in Dlists:      
-        await client.send_message('@L', msg)
+            await client.send_message('@L', msg)
         #time.sleep(1)
 
 with client:
