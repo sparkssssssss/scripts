@@ -1,17 +1,17 @@
 # Author: leeyiding(乌拉)
 # Date: 2020-05-05
 # Link: https://github.com/leeyiding/get_CCB
-# Version: 0.1.4
-# UpdateDate: 2020-05-05 12:35
-# UpdateLog: 修复车主分会场未增加三次抽奖机会Bug
+# Version: 0.5.1
+# UpdateDate: 2020-05-08 22:36
+# UpdateLog: 新增越花越赚活动每日领奖
 
 import requests
 import json
 import os
 import time
+import datetime
 import re
 import random
-import datetime
 import urllib.parse
 import logging
 
@@ -53,23 +53,23 @@ logit = Mylog("ccb","/home/docker/jd/log/ccb/{}.log".format(today))
 class getCCB():
     def __init__(self,cookies,shareCode):
         self.cookies = cookies
+        self.ua = 'Mozilla/5.0 (Linux; Android 11; Redmi K30 5G Build/RKQ1.200826.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/77.0.3865.120 MQQBrowser/6.2 TBS/045613 Mobile Safari/537.36 MMWEBID/6824 micromessenger/8.0.1.1841(0x28000151) Process/tools WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64'
         self.commonShareCode = shareCode['common'] + commoncode
         logit.info('建筑互助码:{}'.format(self.commonShareCode))
         self.motherDayShareCode = shareCode['motherDay'] + mothercode
         logit.info('母亲节互助码:{}'.format(self.motherDayShareCode))
         self.xsrfToken = self.cookies['XSRF-TOKEN'].replace('%3D','=')
-        self.currentTime = int(time.time())
         self.questionFilePath = rootDir + '/questions.json'
 
     def getApi(self,functionId,activityId='lPYNjdmN',params=()):
         '''
-        GET请求接口
+        通用GET请求接口
         '''
-        url = 'https://jxjkhd.kerlala.com/{}/91/{}'.format(functionId,activityId)
+        url = 'https://fission-events.ccbft.com/{}/91/{}'.format(functionId,activityId)
         headers = {
-            'authority': 'jxjkhd.kerlala.com',
-            'user-agent': 'Mozilla/5.0 (Linux; Android 11; Redmi K30 5G Build/RKQ1.200826.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/77.0.3865.120 MQQBrowser/6.2 TBS/045613 Mobile Safari/537.36 MMWEBID/6824 micromessenger/8.0.1.1841(0x28000151) Process/tools WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64',
-            'referer': 'https://jxjkhd.kerlala.com/a/91/lPYNjdmN/fdtopic_v1/index',
+            'authority': 'fission-events.ccbft.com',
+            'user-agent': self.ua,
+            'referer': 'https://fission-events.ccbft.com/a/91/lPYNjdmN/fdtopic_v1/index',
         }
         try:
             r = requests.get(url, headers=headers, params=params, cookies=self.cookies)
@@ -80,21 +80,21 @@ class getCCB():
         except:
             logit.info('调用接口失败，等待10秒重试')
             time.sleep(10)
-            r = requests.get(url, headers=headers, cookies=self.cookies)
+            r = requests.get(url, headers=headers, params=params, cookies=self.cookies)
             return r.json()
 
 
     def postApi(self,functionId,data,activityId='lPYNjdmN'):
         '''
-        POST请求接口
+        通用POST请求接口
         '''
-        url = 'https://jxjkhd.kerlala.com/{}/91/{}'.format(functionId,activityId)
+        url = 'https://fission-events.ccbft.com/{}/91/{}'.format(functionId,activityId)
         headers = {
-            'authority': 'jxjkhd.kerlala.com',
+            'authority': 'fission-events.ccbft.com',
             'x-xsrf-token': self.xsrfToken,
-            'user-agent': 'Mozilla/5.0 (Linux; Android 11; Redmi K30 5G Build/RKQ1.200826.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/77.0.3865.120 MQQBrowser/6.2 TBS/045613 Mobile Safari/537.36 MMWEBID/6824 micromessenger/8.0.1.1841(0x28000151) Process/tools WeChat/arm64 Weixin NetType/WIFI Language/zh_CN ABI/arm64',
-            'origin': 'https://jxjkhd.kerlala.com',
-            'referer': 'https://jxjkhd.kerlala.com/a/91/lPYNjdmN/fdtopic_v1/index',
+            'user-agent': self.ua,
+            'origin': 'https://fission-events.ccbft.com',
+            'referer': 'https://fission-events.ccbft.com/a/91/lPYNjdmN/fdtopic_v1/index',
             'content-type': 'application/json;charset=UTF-8',
         }
         try:
@@ -110,6 +110,28 @@ class getCCB():
             r = requests.post(url, headers=headers, data=data, cookies=self.cookies)
             return r.json()
 
+    def payCostApi(self,functionId,params):
+        '''
+        越花越赚活动GET请求接口
+        '''
+        url = 'https://event.ccbft.com/api/activity/nf/payCost/avtivity/{}'.format(functionId)
+        headers = {
+            'Accept': 'application/json, text/plain, */*',
+            'User-Agent': self.ua,
+            'Referer': self.location,
+        }
+        params = (
+            ('activityCode', 'AP010202102041005765'),
+            ('verFlag', 'act'),
+        ) + params
+        try:
+            r = requests.get(url, headers=headers, params=params, cookies=self.cookies)
+            return r.json()
+        except:
+            logit.info('调用接口失败，等待10秒重试')
+            time.sleep(10)
+            r = requests.get(url, headers=headers, params=params, cookies=self.cookies)
+            return r.json()
 
     def getUserInfo(self):
         '''
@@ -120,13 +142,13 @@ class getCCB():
             logit.info('\n用户{}信息获取成功'.format(userInfo['data']['nickname']))
             logit.info('已获得CC币总量{}，剩余CC币总量{}'.format(userInfo['data']['ccb_money'],userInfo['data']['remain_ccb_money']))
             logit.info('当前建筑等级{}级，已获得建设值总量{},升级还需建设值{}'.format(userInfo['data']['grade'],userInfo['data']['build_score'],userInfo['data']['need_build_score']))
-            logit.info('您的助力码为：{}'.format(userInfo['data']['ident']))
             try:
                 logit.info('提交地址为:' + 'http://47.100.61.159:10080/add?user={}&code={}&type={}'.format(userInfo['data']['nickname'],userInfo['data']['ident'],"ccbcommon"))
                 user_name = urllib.parse.quote(userInfo['data']['nickname'])
                 requests.get('http://47.100.61.159:10080/add?user={}&code={}&type={}'.format(user_name,userInfo['data']['ident'],"ccbcommon"))
             except Exception as e:
                 logit.info(e)
+            logit.info('您的助力码为：{}'.format(userInfo['data']['ident']))
             return True
         else:
             return False
@@ -154,7 +176,7 @@ class getCCB():
         '''
         logit.info('\n开始做日常任务')
         activityInfo = self.getApi('Common/activity/getActivityInfo')
-        if self.currentTime < activityInfo['data']['end_time']:
+        if int(time.time()) < activityInfo['data']['end_time']:
             # 获取任务列表
             taskList = self.getApi('Component/task/lists')
             logit.info('共获取到{}个任务'.format(len(taskList['data']['task'])))
@@ -163,6 +185,11 @@ class getCCB():
                 # 判断任务状态
                 if taskList['data']['userTask'][i]['finish'] ==1:
                     logit.info('该任务已完成，无需重复执行')
+                    # 领取邀请任务奖励
+                    if taskList['data']['task'][i]['type'] == 'share':
+                        data = '{"id":"' + taskList['data']['task'][i]['id'] + '"}'
+                        acceptResult = self.postApi('Component/task/draw',data)
+                        logit.info(acceptResult['message'])
                 else:
                     # 判断任务类型
                     if taskList['data']['task'][i]['type'] == 'visit' or taskList['data']['task'][i]['type'] == 'other':
@@ -177,8 +204,7 @@ class getCCB():
                         if signinResult['status'] == 'success':
                             logit.info('获得{}'.format(signinResult['data']['prize_name']))
                     elif taskList['data']['task'][i]['type'] == 'share':
-                        # 助力任务
-                        logit.info('助力逻辑未知')
+                        pass
                     # 领取奖励
                     if taskList['data']['task'][i]['draw_type'] == 'number':
                         # 气泡类型奖励
@@ -190,11 +216,26 @@ class getCCB():
                         logit.info(acceptResult['message'])
                     # 休息五秒，防止接口提示频繁 
                     time.sleep(5)
+            # 助力好友
+            self.doHelp()
             # 升级建筑
             self.buildingUp()
         else:
             logit.info('抱歉，该活动已结束')
 
+    def doHelp(self):
+        '''
+        助力任务
+        '''
+        logit.info('\n开始助力好友')
+        if len(self.commonShareCode) == 0:
+            logit.info('未提供任何助力码')
+        else:
+            logit.info('您提供了{}个好友助力码'.format(len(self.commonShareCode)))
+        for i in range(len(self.commonShareCode)):
+            logit.info('开始助力好友{}'.format(i+1))
+            self.getApi('a','lPYNjdmN',(('u', self.commonShareCode[i]),))
+            time.sleep(2)
 
     def buildingUp(self):
         '''
@@ -216,13 +257,38 @@ class getCCB():
             logit.info('建设值不足,距下一等级还需{}建设值'.format(userInfo['data']['need_build_score']))
 
 
+    def doSubvenueTask(self):
+        '''
+        分会场 龙支付优惠集锦
+        '''
+        logit.info('\n开始做龙支付分会场任务')
+        activityInfo = self.getApi('Common/activity/getActivityInfo','5Z9WxaPK')
+        if int(time.time()) < activityInfo['data']['end_time']:
+            # 获取任务列表
+            taskList = self.getApi('activity/lzfsubvenue/getIndicatorList','5Z9WxaPK')
+            logit.info('共获取到{}个任务'.format(len(taskList['data']['task'])))
+            for i in range(len(taskList['data']['task'])):
+                logit.info('\n开始做任务【{}】'.format(taskList['data']['task'][i]['indicator']['show_name']))
+                if taskList['data']['task'][i]['day_complete'] == 1:
+                    logit.info('该任务今日已完成，无需重复执行')
+                elif taskList['data']['task'][i]['day_complete'] == 0:
+                    data = '{"code": "' + taskList['data']['task'][i]['indicator']['code'] + '"}'
+                    doTaskResult = self.postApi('activity/lzfsubvenue/visit',data,'5Z9WxaPK')
+                    logit.info(doTaskResult)
+                    if doTaskResult['message'] == 'ok':
+                        logit.info('任务完成，获得5CC币')
+                    time.sleep(5)
+        else:
+            logit.info('抱歉，该活动已结束')
+
+
     def doCarTask(self):
         '''
             车主分会场做任务、抽奖
         '''
         logit.info('\n开始做车主分会场任务')
         activityInfo = self.getApi('Common/activity/getActivityInfo','dmRe4rPD')
-        if self.currentTime < activityInfo['data']['end_time']:
+        if int(time.time()) < activityInfo['data']['end_time']:
             # 访问首页，获得三次抽奖机会
             self.getApi('a','dmRe4rPD/parallelsessions_v1/index',(('CCB_Chnl', '6000213'),))
             # 获取任务列表
@@ -263,7 +329,7 @@ class getCCB():
         '''
         logit.info('\n开始天天抽奖')
         activityInfo = self.getApi('Common/activity/getActivityInfo','03ljx6mW')
-        if self.currentTime < activityInfo['data']['end_time']:
+        if int(time.time()) < activityInfo['data']['end_time']:
             # 检查报名状态
             drawStatus = self.getApi('Component/signup/status','03ljx6mW')
             if drawStatus['status'] == 'fail':
@@ -305,7 +371,7 @@ class getCCB():
         '''
         logit.info('\n开始每日一答')
         activityInfo = self.getApi('Common/activity/getActivityInfo','jmX0aKmd')
-        if self.currentTime < activityInfo['data']['end_time']:
+        if int(time.time()) < activityInfo['data']['end_time']:
             # 获取用户答题信息
             userDataInfo = self.getApi('activity/dopanswer/getUserDataInfo','jmX0aKmd')
             if userDataInfo['data']['remain_num'] == 1:
@@ -335,16 +401,16 @@ class getCCB():
         '''
         logit.info('\n开始做 母亲节集赞得520CC币 活动')
         activityInfo = self.getApi('Common/activity/getActivityInfo','jmX08Ymd')
-        if self.currentTime < activityInfo['data']['end_time']:
+        if int(time.time()) < activityInfo['data']['end_time']:
             # 获取用户信息
             userInfo = self.getApi('activity/mumbit/getUserInfo','jmX08Ymd')
-            logit.info('您的活动助力码为：{}'.format(userInfo['data']['ident']))
             try:
                 logit.info('提交地址为:' + 'http://47.100.61.159:10080/add?user={}&code={}&type={}'.format(userInfo['data']['nickname'],userInfo['data']['ident'],"ccbmother"))
                 user_name = urllib.parse.quote(userInfo['data']['nickname'])
                 requests.get('http://47.100.61.159:10080/add?user={}&code={}&type={}'.format(user_name,userInfo['data']['ident'],"ccbmother"))
             except Exception as e:
                 logit.info(e)
+            logit.info('您的活动助力码为：{}'.format(userInfo['data']['ident']))
             judgeStatus = self.getApi('activity/mumbit/judgeStatus','jmX08Ymd')
             if judgeStatus['data']['ext'] == '':
                 logit.info('您从未参加该活动，开始初始化活动')
@@ -384,30 +450,31 @@ class getCCB():
         else:
             logit.info('抱歉，该活动已结束')
 
+
     def doWhcanswer(self):
         '''
         学外汇 得实惠活动
         '''
-        print('\n开始做 学外汇 得实惠 活动')
+        logit.info('\n开始做 学外汇 得实惠 活动')
         # 读取题库
         if os.path.exists(self.questionFilePath):
             with open(self.questionFilePath,encoding='UTF-8') as fp:
                 questionDict = json.load(fp)
         else:
-            print('题库不存在，请下载完整题库')
+            logit.info('题库不存在，请下载完整题库')
             return False
         # 读取活动信息
         activityInfo = self.getApi('Common/activity/getActivityInfo','dmRev1PD')
-        if self.currentTime < activityInfo['data']['end_time']:
+        if int(time.time()) < activityInfo['data']['end_time']:
             # 答题
             # 获取用户信息
             userInfo = self.getApi('Common/activity/getUserInfo','dmRev1PD')
             ident = userInfo['data']['ident']
             userDataInfo = self.getApi('activity/whcanswer/getUserDataInfo','dmRev1PD')
             if userDataInfo['data']['remain_num'] > 0:
-                print('今日剩余{}次答题机会'.format(userDataInfo['data']['remain_num']))
+                logit.info('今日剩余{}次答题机会'.format(userDataInfo['data']['remain_num']))
                 for num in range(userDataInfo['data']['remain_num']):
-                    print('\n开始第{}轮答题'.format(num+1))
+                    logit.info('\n开始第{}轮答题'.format(num+1))
                     # 使用答题机会
                     self.getApi('activity/whcanswer/reduceNum','dmRev1PD')
                     # 获取题目
@@ -416,7 +483,7 @@ class getCCB():
                     rightOptionsId = []
                     for questionId in questionInfo['data']['question_id']:
                         rightOptionsId.append(questionDict[str(questionId)]['rightOptionId'])
-                    print(rightOptionsId)
+                    logit.info(rightOptionsId)
                     # 获取正确答案位序
                     rightOptionsNum = []
                     for i in range(len(questionInfo['data']['all_question'])):
@@ -424,43 +491,86 @@ class getCCB():
                             if questionInfo['data']['all_question'][i]['option'][j]['id'] == rightOptionsId[i]:
                                 rightOptionsNum.append(j+1)
                                 break
-                    print(rightOptionsNum)
+                    logit.info(rightOptionsNum)
                     # 开始答题
                     for i in range(len(questionInfo['data']['all_question'])):
-                        print('问题{}：{}'.format(i+1,questionInfo['data']['all_question'][i]['question']['title']))
+                        logit.info('问题{}：{}'.format(i+1,questionInfo['data']['all_question'][i]['question']['title']))
                         for j in range(len(questionInfo['data']['all_question'][i]['option'])):
-                            print('选项{}：{}'.format(j+1,questionInfo['data']['all_question'][i]['option'][j]['title']))
+                            logit.info('选项{}：{}'.format(j+1,questionInfo['data']['all_question'][i]['option'][j]['title']))
                         # 提交答案
-                        print('选择选项{}'.format(rightOptionsNum[i]))
+                        logit.info('选择选项{}'.format(rightOptionsNum[i]))
                         data = '{"levelId": 1, "questionId": ' + str(i+1) + ', "answerId":' + str(rightOptionsNum[i]) + '}'
                         answerResult = self.postApi('activity/whcanswer/answerQuestion',data,'dmRev1PD')
-                        print('当前得分{}'.format(answerResult['data']['curScore']))
+                        logit.info('当前得分{}'.format(answerResult['data']['curScore']))
                         # 休息3秒，防止接口频繁
                         time.sleep(3)
             else:
-                print('今日已无答题机会')
+                logit.info('今日已无答题机会')
 
             # 抽奖
             # 获取剩余抽奖次数
             userDataInfo = self.getApi('activity/whcdraw/getUserDataInfo','lPYNEEmN')
             if int(userDataInfo['data']['drawUserExt']['remain_num']) > 0:
-                print('今日剩余抽奖次数{}'.format(userDataInfo['data']['drawUserExt']['remain_num']))
+                logit.info('今日剩余抽奖次数{}'.format(userDataInfo['data']['drawUserExt']['remain_num']))
                 for i in range(int(userDataInfo['data']['drawUserExt']['remain_num'])):
                     drawResult = self.getApi('activity/whcdraw/draw','lPYNEEmN')
-                    print(drawResult)
+                    logit.info(drawResult)
                     # 休息5秒，防止接口频繁
                     time.sleep(5)
             else:
-                print('今日已无抽奖机会')
+                logit.info('今日已无抽奖机会')
         else:
-            print('抱歉，该活动已结束')
+            logit.info('抱歉，该活动已结束')
 
 
+    def doPayCost(self):
+        '''
+        龙支付越花越赚每日领奖
+        '''
+        logit.info('\n开始领取龙支付越花越赚奖励')
+        # 获取openID
+        headers = {
+            'authority': 'jxjkhd.kerlala.com',
+            'user-agent': self.ua,
+            'referer': 'https://fission-events.ccbft.com/a/91/lPYNjdmN/fdtopic_v1/index',
+        }
+        params = (
+            ('url', 'https://event.ccbft.com/ccbact/m3007/AP010202102041005765-act.html?CCB_Chnl=6000210'),
+        )
+        oauthResult = requests.get('https://fission-events.ccbft.com/oauth/carry/91/CCBFFGY001', headers=headers, params=params, cookies=self.cookies, allow_redirects=False)
+        if oauthResult.status_code == 302:
+            self.location = oauthResult.headers['Location']
+            kerlalaOpenid = re.findall('openid=([a-z0-9\-]*)',self.location)[0]
+        else:
+            return False
+
+        # 获取活动及用户信息
+        activityDetail = self.payCostApi('queryActivityDetail',(('kerlalaOpenid', kerlalaOpenid),))
+        if (int(round(time.time()*1000))) < activityDetail['data']['endTime']:
+            if 'userInfo' in activityDetail['data']:
+                signsInfo = activityDetail['data']['userInfo']['signs']
+                for i in range(len(signsInfo)):
+                    if signsInfo[i]['received'] == 0:
+                        logit.info('第{}天奖励可领取'.format(signsInfo[i]['continueDays']))
+                        date = signsInfo[i]['signInDate']
+                        userId = activityDetail['data']['userInfo']['userId']
+                        taskId = activityDetail['data']['tasks'][0]['taskId']
+                        awardResult = self.payCostApi('activityRedeemPoint',(('userId', userId),('taskId', taskId),('date', date),))
+                        logit.info(awardResult)
+                    else:
+                        logit.info('第{}天暂无奖励可领取'.format(signsInfo[i]['continueDays']))
+            else:
+                logit.info('未报名，请前往活动主页报名')
+        else:
+            logit.info('抱歉，该活动已结束')
+        
 
     def main(self):
         try:
             # 主会场活动
             self.doTask()
+            # 龙支付分会场活动
+            self.doSubvenueTask()
             # 车主分会场活动
             self.doCarTask()
             # 天天抽奖活动
@@ -471,8 +581,10 @@ class getCCB():
             self.mothersDayTask()
             # 学外汇 得实惠活动
             self.doWhcanswer()
+            # 越花越赚领奖
+            self.doPayCost()
         except Exception as e:
-            print(e)
+            logit.info(e)
     
 def readConfig(configPath):
     with open(configPath,encoding='UTF-8') as fp:
@@ -480,6 +592,7 @@ def readConfig(configPath):
     return config
 
 if __name__ == '__main__':
+    logit.info('脚本执行开始时间' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     rootDir = os.path.dirname(os.path.abspath(__file__))
     configPath = rootDir + "/config.json"
     config = readConfig(configPath)
@@ -489,3 +602,4 @@ if __name__ == '__main__':
             user.main()
         else:
             logit.info('\n账号{}已失效，请及时更新Cookie'.format(i+1))
+    logit.info('脚本执行结束时间' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
