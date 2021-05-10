@@ -117,7 +117,7 @@ function delcron {
   cronfiles=$(grep "$author" /jd/config/crontab.list|grep -v "^#"|awk '{print $8}'|awk -F"${author}_" '{print $2}')
   for filename in $cronfiles;
     do
-      if [ ! -f "$jspath/${filename}.js" ]; then 
+	    if [ ! -f "$jspath/${filename}.js" ] || [ ! -z $(echo $filename|egrep  $blackword) ] ; then 
         sed -i "/\<bash jd ${author}_${filename}\>/d" /jd/config/crontab.list && echo -e "删除失效脚本${filename}."
 	delname="${delname}\n${author}_${filename}"
       fi
