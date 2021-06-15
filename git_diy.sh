@@ -29,6 +29,8 @@ dirs=$3
 #指定仓库屏蔽关键词,不添加计划任务,多个按照格式二
 BlackListDict['monk-coder']="_get|backup"
 BlackListDict['sparkssssssss']="smzdm|tg|xxxxxxxx"
+BlackListDict['3028']="jd_daojia_bean"
+BlackListDict['yangtingxiao']="jdCookie|example"
 
 blackword=${BlackListDict["${author}"]}
 blackword=${blackword:-"wojiushigejimo"}
@@ -44,8 +46,11 @@ mkdir -p ${diyscriptsdir}
 
 if [ ! -d "$diyscriptsdir/${author}_${repo}" ]; then
   echo -e "${author}本地仓库不存在,从gayhub拉取ing..."
-  #cd ${diyscriptsdir} &&  git clone https://github.com/${author}/${repo}.git ${author}_${repo}
-  cd ${diyscriptsdir} &&  git clone git@github.com:${author}/${repo}.git ${author}_${repo}
+  if [ ! -f /jd/diyscripts/sshkey/$author ];then
+    cd ${diyscriptsdir} &&  git clone https://github.com/${author}/${repo}.git ${author}_${repo}
+  else
+    cd ${diyscriptsdir} &&  git clone git@github.com:${author}/${repo}.git ${author}_${repo}
+  fi
   gitpullstatus=$?
   [ $gitpullstatus -eq 0 ] && echo -e "${author}本地仓库拉取完毕"
   [ $gitpullstatus -ne 0 ] && echo -e "${author}本地仓库拉取失败,请检查!" && exit 0
@@ -67,13 +72,14 @@ rand(){
 
 function addnewcron {
   local addname=""
-  if [ -n $dir ];then
+  if [ ! -z $dir ];then
+    dirname=$(echo $dir|sed 's#/##g')	   
     cd ${diyscriptsdir}/${author}_${repo}/$dir
-    local author=${author}_${dir}
+    local author=${author}_${dirname}
   else
     cd ${diyscriptsdir}/${author}_${repo}
   fi
-  [ $(grep -c "#${author}" /jd/config/crontab.list) -eq 0 ] && sed -i "/hangup/a#${author}"  /jd/config/crontab.list
+  [ $(grep -c "#${author}" /jd/config/crontab.list) -eq 0 ] && sed -i "/#diy/i#${author}"  /jd/config/crontab.list
   
   for jspath in `ls *.js|egrep -v $blackword`; 
   #for jspath in `find ./ -name  "*.js"|egrep -v $blackword`; 
@@ -83,9 +89,9 @@ function addnewcron {
       js=`echo $jspath|awk -F'/' '{print $NF}'` 
       croname=`echo "${author}_$js"|awk -F\. '{print $1}'`
       script_date=`cat  $js|grep ^[0-9]|awk '{print $1,$2,$3,$4,$5}'|egrep -v "[a-zA-Z]|:|\."|sort |uniq|head -n 1`
-      [ -z "${script_date}" ] && script_date=`cat  $jspath|grep -Eo "([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9][,-].*)"|sort |uniq|head -n 1`
+      #[ -z "${script_date}" ] && script_date=`cat  $jspath|grep -Eo "([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9]+[,-].*) ([0-9]+|\*|[0-9][,-].*)"|sort |uniq|head -n 1`
       [ -z "${script_date}" ] && cron_min=$(rand 1 59) && cron_hour=$(rand 7 9) && script_date="${cron_min} ${cron_hour} * * *"
-      [ $(grep -c -w "$croname" /jd/config/crontab.list) -eq 0 ] && sed -i "/#${author}/a${script_date} bash jd $croname"  /jd/config/crontab.list && addname="${addname}\n${croname}" && echo -e "添加了新的脚本${croname}." && newflag=1 
+      [ $(grep -c -w "$croname" /jd/config/crontab.list) -eq 0 ] && sed -i "/bash jd $croname/d" /jd/config/crontab.list && sed -i "/#${author}/a${script_date} bash jd $croname"  /jd/config/crontab.list && addname="${addname}\n${croname}" && echo -e "添加了新的脚本${croname}." && newflag=1 
       [ $newflag -eq 1 ] && bash jd ${croname} now >/dev/null &
 
 
@@ -98,7 +104,7 @@ function addnewcron {
         \cp $jspath /jd/scripts/${author}_$js
       else
         change=$(diff $jspath /jd/scripts/${author}_$js)
-        [ -n "${change}" ] && \cp $jspath /jd/scripts/${author}_$js && echo -e "${author}_$js 脚本更新了."
+        [ ! -z "${change}" ] && \cp $jspath /jd/scripts/${author}_$js && echo -e "${author}_$js 脚本更新了."
 
       fi
   done
@@ -108,9 +114,10 @@ function addnewcron {
 
 function delcron {
   local delname=""
-  if [ -n $dir ];then
+  if [ ! -z $dir ];then
+    dirname=$(echo $dir|sed 's#/##g')
     local jspath=${diyscriptsdir}/${author}_${repo}/$dir
-    local author=${author}_${dir}
+    local author=${author}_${dirname}
   else
     jspath=${diyscriptsdir}/${author}_${repo}
   fi
@@ -127,8 +134,8 @@ function delcron {
 
 if [[ ${gitpullstatus} -eq 0 ]]
 then
-  if [ -n "$dirs" ] ;then
-    for dir in `pcho "$dirs" | sed 's/,/\n/g'`
+  if [ ! -z "$dirs" ] ;then
+    for dir in `echo "$dirs" | sed 's/,/\n/g'`
     do
       addnewcron
       delcron
